@@ -1,0 +1,57 @@
+###################Download only
+ 
+yum install --downloadonly --downloaddir=./ clamav-server clamav-data clamav-update clamav-filesystem clamav clamav-scanner-systemd clamav-devel clamav-lib clamav-server-systemd
+
+##################Install ClamAV
+
+yum install clamav-server clamav-data clamav-update clamav-filesystem clamav clamav-scanner-systemd clamav-devel clamav-lib clamav-server-systemd
+
+#################Configure SELinux for ClamAV
+
+setsebool -P antivirus_can_scan_system 1
+
+	***Check SELinux
+	getsebool -a | grep antivirus 
+	
+################Configuration of Clam daemon
+
+cp /usr/share/clamav/template/clamd.conf /etc/clamd.d/clamd.conf
+
+sed -i '/^Example/d' /etc/clamd.d/clamd.conf
+
+###############Enable Freshclam
+
+cp /etc/freshclam.conf /etc/freshclam.conf.bak
+
+sed -i ‘/^Example/d’ /etc/freshclam.conf
+
+
+
+#sed -i -e "s/^Example/#Example/" /etc/freshclam.conf
+
+#sed -i -e "s/^Example/#Example/" /etc/clamd.d/scan.conf
+
+
+
+
+vi /usr/lib/systemd/system/clam-freshclam.service
+
+		# Run the freshclam as daemon
+		[Unit]
+		Description = freshclam scanner
+		After = network.target
+
+		[Service]
+		Type = forking
+		ExecStart = /usr/bin/freshclam -d -c 4
+		Restart = on-failure
+		PrivateTmp = true
+
+		[Install]
+		WantedBy=multi-user.target
+	
+systemctl enable clam-freshclam.service
+
+systemctl start clam-freshclam.service
+
+
