@@ -1,9 +1,9 @@
 #!/bin/bash
 
 ##### Install ClamAV
-
+# https://github.com/crylium/clamav-daily/blob/master/clamscan-daily-script.sh
 # source = http://yum.payoo.local/source/clamav
-#clamacdb = http://clamav.payoo.local
+# clamavdb = http://clamav.payoo.local
 
 ## Download file and dependencies
 
