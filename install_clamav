@@ -1,0 +1,51 @@
+#!/bin/bash
+
+##### Install ClamAV
+
+# source = http://yum.payoo.local/source/clamav
+#clamacdb = http://clamav.payoo.local
+
+## Download file and dependencies
+
+wget -P clamav $source
+yum --nogpgcheck localinstall  clamav/*
+
+
+## Config SELinux
+
+setsebool -P antivirus_can_scan_system 1
+setsebool -P clamd_use_jit 1
+
+
+## Config ClamAV
+
+sed -i -e "s/^Example/#Example/" /etc/clamd.d/scan.conf
+sed -i -e "s/^Example/#Example/" /etc/freshclam.conf
+
+sed -i -e "s/^#LocalSocket /LocalSocket /" /etc/clamd.d/scan.conf
+
+
+cat > /usr/lib/systemd/system/freshclam.service <<EOL
+#!/bin/bash
+[Unit]
+  Description = freshclam scanner
+  After = network.target
+[Service]
+  Type = forking
+  ExecStart = /usr/bin/freshclam -d -c 2
+  Restart = on-failure
+  PrivateTmp = true
+[Install]
+  WantedBy=multi-user.target
+EOL
+
+
+
+systemctl start freshclam
+systemctl enable freshclam
+
+systemctl start clamd@scan
+systemctl enable clamd@scan
+
+
+# Auto update database
